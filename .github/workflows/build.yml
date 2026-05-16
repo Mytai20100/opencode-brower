@@ -1,0 +1,95 @@
+name: Package npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'CHANGELOG-MCP.md'
+
+jobs:
+  publish:
+    name: Build & Publish to npm
+    runs-on: ubuntu-latest
+    environment: npm-publish
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Extract version from CHANGELOG-MCP.md
+        id: version
+        run: |
+          VERSION=$(grep -m1 -oP '(?<=# V)\d+\.\d+\.\d+' CHANGELOG-MCP.md || true)
+          if [ -z "$VERSION" ]; then
+            echo "Could not find version in CHANGELOG-MCP.md (expected format: # V1.0.0)"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=mcp-v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Check tag does not exist
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "Tag $TAG already exists, skipping publish."
+            exit 0
+          fi
+
+      - name: Sync version to package.json
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd server
+          npm version "$VERSION" --no-git-tag-version
+          echo "package.json version -> $VERSION"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Build TypeScript
+        run: npm run build
+        working-directory: server
+
+      - name: Publish to npm
+        run: npm publish --access public
+        working-directory: server
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Git tag
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "MCP Server v$VERSION"
+          git push origin "$TAG"
+          echo "Tagged $TAG"
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BODY=$(awk "/^# V$VERSION/{found=1; next} found && /^# V/{exit} found{print}" CHANGELOG-MCP.md)
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$BODY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "MCP Server v${{ steps.version.outputs.version }}"
+          body: ${{ steps.changelog.outputs.body }}
+          draft: false
+          prerelease: false

@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'extension/manifest.json'
+
+jobs:
+  release-extension:
+    name: Package Extension & Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from manifest.json
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' extension/manifest.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Could not read version from extension/manifest.json"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=ext-v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Extension version: $VERSION"
+
+      - name: Check tag does not exist
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "Tag $TAG already exists, skipping release."
+            exit 0
+          fi
+
+      - name: Package extension as .zip
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP_NAME="opencode-browser-extension-v$VERSION.zip"
+          cd extension
+          zip -r "../$ZIP_NAME" . \
+            --exclude "*.DS_Store" \
+            --exclude "__MACOSX/*" \
+            --exclude "*.map" \
+            --exclude "*.md"
+          echo "Packed: $ZIP_NAME"
+          echo "zip_name=$ZIP_NAME" >> "$GITHUB_ENV"
+
+      - name: Create Git tag
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Extension v$VERSION"
+          git push origin "$TAG"
+          echo "Tagged $TAG"
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BODY=$(awk "/^# V$VERSION/{found=1; next} found && /^# V/{exit} found{print}" CHANGELOG-EXTENSION.md)
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$BODY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release & Upload zip
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Extension v${{ steps.version.outputs.version }}"
+          body: ${{ steps.changelog.outputs.body }}
+          draft: false
+          prerelease: false
+          files: ${{ env.zip_name }}
