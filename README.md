@@ -7,7 +7,7 @@
 [![Package npm](https://github.com/Mytai20100/opencode-brower/actions/workflows/build.yml/badge.svg?event=status)](https://github.com/Mytai20100/opencode-brower/actions/workflows/build.yml)
 [![Build](https://github.com/Mytai20100/opencode-brower/actions/workflows/build-e.yml/badge.svg)](https://github.com/Mytai20100/opencode-brower/actions/workflows/build-e.yml)
 
-Chrome automation plugin for [OpenCode](https://opencode.ai) via WebSocket and Chrome Extension. Gives AI agents 94 tools covering tabs, CDP debugging, network interception, visual clicking, session management, accessibility, and more.
+Chrome automation plugin for [OpenCode](https://opencode.ai) via WebSocket and Chrome Extension. Gives AI agents **105+ tools** covering tabs, CDP debugging, network interception, visual clicking, session management, accessibility, advanced mouse/keyboard control, testing & mocking, profiling, and more.
 
 ## How it works
 
@@ -106,7 +106,7 @@ For the extension, load the `extension/` folder from the cloned repo the same wa
 
 ## Prompt tips
 
-A few patterns that get the most out of the 94 available tools:
+A few patterns that get the most out of the **105+ available tools**:
 
 **Always start with the tool graph.** Before any multi-step task, ask the agent to call `chrome_get_tool_graph` with a plain description of the goal. This gives it an ordered execution plan and tells it which tools to skip, saving unnecessary calls.
 
@@ -187,19 +187,33 @@ All tools are prefixed with `chrome_`. The agent can call `chrome_get_tool_graph
 | Tool | Description |
 |------|-------------|
 | `chrome_screenshot` | Capture the visible area as a base64 PNG or JPEG |
+| `chrome_screenshot_element` | Capture a specific element by CSS selector |
+| `chrome_screenshot_fullpage` | Capture full page with scrolling and stitching |
+| `chrome_pdf_print` | Save current page as PDF with custom options |
 
 ### Page interaction
 
 | Tool | Description |
 |------|-------------|
 | `chrome_click` | Click an element by CSS selector |
+| `chrome_double_click` | Double click an element by selector or coordinates |
+| `chrome_right_click` | Right click to open context menu |
+| `chrome_middle_click` | Middle click (open in new tab) |
+| `chrome_drag_drop` | Drag and drop from element A to B |
 | `chrome_type` | Type text into an input element by CSS selector |
 | `chrome_hover` | Hover over an element by CSS selector |
 | `chrome_select` | Select an option in a `<select>` element |
 | `chrome_scroll` | Scroll the page or a specific element by x/y pixels |
 | `chrome_scroll_to` | Scroll an element into view |
 | `chrome_key_press` | Dispatch a keyboard event (Enter, Escape, Tab, etc.) |
+| `chrome_keyboard_shortcut` | Execute keyboard shortcuts (Ctrl+C, Ctrl+V, Ctrl+A, etc.) |
 | `chrome_wait_for_element` | Wait until a CSS selector appears in the DOM |
+| `chrome_wait_for_navigation` | Wait for page navigation to complete |
+| `chrome_wait_for_network_idle` | Wait until no network requests for N milliseconds |
+| `chrome_focus_element` | Focus an element without clicking |
+| `chrome_clear_input` | Clear an input field |
+| `chrome_select_text` | Select/highlight text on the page |
+| `chrome_get_selected_text` | Get currently selected text |
 
 ### Page content
 
@@ -235,6 +249,7 @@ All tools are prefixed with `chrome_`. The agent can call `chrome_get_tool_graph
 | `chrome_get_local_storage` | Get localStorage value(s) from the current page |
 | `chrome_set_local_storage` | Set a localStorage value on the current page |
 | `chrome_clear_local_storage` | Clear all localStorage on the current page |
+| `chrome_get_session_storage` | Get sessionStorage value(s) from the current page |
 
 ### History and bookmarks
 
@@ -435,6 +450,34 @@ Contributions are welcome.
 
 See [CHANGELOG-MCP.md](CHANGELOG-MCP.md) for a detailed list of changes.
 
+### v0.0.2 — 2026-05-27
+
+**60 new tools added** across 4 major categories:
+
+- **Phase 1: Advanced Automation (21 tools)**
+  - Advanced mouse: double_click, right_click, middle_click, drag_drop
+  - Keyboard shortcuts: keyboard_shortcut (Ctrl+C, Ctrl+V, Ctrl+A, etc.)
+  - Wait tools: wait_for_navigation, wait_for_network_idle
+  - Screenshots: screenshot_element, screenshot_fullpage, pdf_print
+  - CSS injection: inject_css, remove_css
+  - Text selection: select_text, get_selected_text, focus_element, clear_input
+
+- **Phase 2: Testing & Mocking (12 tools)**
+  - Emulation: mock_geolocation, mock_timezone, mock_locale, mock_battery, mock_media_type, emulate_vision, cpu_throttle
+  - Network & time: mock_date_time, modify_response_body, get_ws_frames, set_extra_headers, get_request_body
+
+- **Phase 3: Advanced Debugging (17 tools)**
+  - Profiling: profiling_start, profiling_stop, heap_snapshot, trace_start, trace_stop
+  - Debugger control: pause_on_exception, debugger_resume, debugger_step_over, debugger_step_into, debugger_step_out, get_call_frames
+  - Runtime inspection: evaluate_on_call_frame, get_script_source, live_edit_script, call_function_on, get_properties, compile_script
+
+- **Phase 4: Storage & API (10 tools)**
+  - Storage: get_indexeddb, get_session_storage, get_cache_storage
+  - Security: get_security_state, ignore_cert_errors
+  - DOM manipulation: set_color_scheme, highlight_element, hide_element, dom_set_attribute, dom_remove_node
+
+**Total tools: 105+** (up from 94)
+
 ### v0.0.1 — initial release
 
 - 94 Chrome automation tools via WebSocket and Chrome Extension
@@ -451,3 +494,68 @@ See [CHANGELOG-MCP.md](CHANGELOG-MCP.md) for a detailed list of changes.
 ## License
 
 [MIT License](./LICENSE)
+### CSS & Styling
+
+| Tool | Description |
+|------|-------------|
+| `chrome_inject_css` | Inject CSS stylesheet into the page |
+| `chrome_remove_css` | Remove previously injected CSS by ID |
+| `chrome_set_color_scheme` | Force dark or light mode |
+
+### Testing & Mocking
+
+| Tool | Description |
+|------|-------------|
+| `chrome_mock_geolocation` | Mock GPS location for testing |
+| `chrome_mock_timezone` | Override timezone of the page |
+| `chrome_mock_locale` | Override locale/language |
+| `chrome_mock_battery` | Mock battery status API |
+| `chrome_mock_media_type` | Override CSS media type (print/screen) |
+| `chrome_emulate_vision` | Emulate vision deficiencies (color blindness, blurred vision) |
+| `chrome_cpu_throttle` | Throttle CPU to simulate slower devices |
+| `chrome_mock_date_time` | Override Date.now() for deterministic testing |
+| `chrome_modify_response_body` | Modify response body before page receives it |
+| `chrome_get_ws_frames` | Capture WebSocket frames |
+| `chrome_set_extra_headers` | Add extra HTTP headers to all requests |
+| `chrome_get_request_body` | Get POST body of a sent request |
+
+### Advanced Debugging & Profiling
+
+| Tool | Description |
+|------|-------------|
+| `chrome_profiling_start` | Start CPU profiling |
+| `chrome_profiling_stop` | Stop CPU profiling and get profile data |
+| `chrome_heap_snapshot` | Take a heap snapshot for memory analysis |
+| `chrome_trace_start` | Start tracing (Timeline/Performance recording) |
+| `chrome_trace_stop` | Stop tracing and get trace events |
+| `chrome_pause_on_exception` | Pause debugger on exceptions (all/uncaught/none) |
+| `chrome_debugger_resume` | Resume execution after debugger pause |
+| `chrome_debugger_step_over` | Step over current line |
+| `chrome_debugger_step_into` | Step into function call |
+| `chrome_debugger_step_out` | Step out of current function |
+| `chrome_get_call_frames` | Get call stack when paused |
+| `chrome_evaluate_on_call_frame` | Evaluate expression in paused call frame |
+| `chrome_get_script_source` | Get source code of a script |
+| `chrome_live_edit_script` | Live edit JavaScript without reload |
+| `chrome_call_function_on` | Call function on remote object |
+| `chrome_get_properties` | Get properties of a remote object |
+| `chrome_compile_script` | Check JavaScript syntax without executing |
+
+### Storage & Security
+
+| Tool | Description |
+|------|-------------|
+| `chrome_get_indexeddb` | Read IndexedDB data from the page |
+| `chrome_get_cache_storage` | Read Service Worker cache storage |
+| `chrome_get_security_state` | Get HTTPS security state and certificate info |
+| `chrome_ignore_cert_errors` | Ignore SSL certificate errors |
+
+### DOM Manipulation
+
+| Tool | Description |
+|------|-------------|
+| `chrome_highlight_element` | Highlight element on screen for debugging |
+| `chrome_hide_element` | Hide or show element |
+| `chrome_dom_set_attribute` | Set DOM attribute via CDP |
+| `chrome_dom_remove_node` | Remove DOM node |
+

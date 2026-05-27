@@ -1182,6 +1182,907 @@ const TOOLS = [
       },
     },
   },
+
+  // PHASE 1: ADVANCED MOUSE & KEYBOARD
+  {
+    name: "chrome_double_click",
+    description: "Double click an element by CSS selector or at specific coordinates",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector (optional if x/y provided)" },
+        x: { type: "number", description: "X coordinate for visual double click" },
+        y: { type: "number", description: "Y coordinate for visual double click" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_right_click",
+    description: "Right click an element to open context menu",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector (optional if x/y provided)" },
+        x: { type: "number", description: "X coordinate" },
+        y: { type: "number", description: "Y coordinate" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_middle_click",
+    description: "Middle click (open in new tab)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector (optional if x/y provided)" },
+        x: { type: "number", description: "X coordinate" },
+        y: { type: "number", description: "Y coordinate" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_drag_drop",
+    description: "Drag and drop from element A to element B or coordinates",
+    inputSchema: {
+      type: "object",
+      properties: {
+        fromSelector: { type: "string", description: "Source element selector" },
+        toSelector: { type: "string", description: "Target element selector" },
+        fromX: { type: "number", description: "Source X coordinate" },
+        fromY: { type: "number", description: "Source Y coordinate" },
+        toX: { type: "number", description: "Target X coordinate" },
+        toY: { type: "number", description: "Target Y coordinate" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_keyboard_shortcut",
+    description: "Execute keyboard shortcuts like Ctrl+C, Ctrl+V, Ctrl+A, etc.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        shortcut: { type: "string", description: "Shortcut like 'Ctrl+C', 'Ctrl+V', 'Ctrl+A', 'Ctrl+Z', 'Ctrl+S'" },
+        tabId: { type: "number" },
+      },
+      required: ["shortcut"],
+    },
+  },
+
+  // WAIT TOOLS
+  {
+    name: "chrome_wait_for_navigation",
+    description: "Wait for page navigation to complete after clicking a link",
+    inputSchema: {
+      type: "object",
+      properties: {
+        timeout: { type: "number", description: "Max wait in ms (default 30000)" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_wait_for_network_idle",
+    description: "Wait until no network requests for N milliseconds",
+    inputSchema: {
+      type: "object",
+      properties: {
+        idleTime: { type: "number", description: "Idle time in ms (default 500)" },
+        timeout: { type: "number", description: "Max wait in ms (default 30000)" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+
+  // SCREENSHOT TOOLS
+  {
+    name: "chrome_screenshot_element",
+    description: "Take screenshot of a specific element",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector of element" },
+        format: { type: "string", enum: ["png", "jpeg"] },
+        quality: { type: "number", description: "JPEG quality 0-100" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_screenshot_fullpage",
+    description: "Take full page screenshot (scrolls and stitches)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        format: { type: "string", enum: ["png", "jpeg"] },
+        quality: { type: "number", description: "JPEG quality 0-100" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_pdf_print",
+    description: "Save current page as PDF",
+    inputSchema: {
+      type: "object",
+      properties: {
+        landscape: { type: "boolean", description: "Landscape orientation" },
+        displayHeaderFooter: { type: "boolean" },
+        printBackground: { type: "boolean", description: "Print background graphics" },
+        scale: { type: "number", description: "Scale 0.1-2.0 (default 1)" },
+        paperWidth: { type: "number", description: "Paper width in inches" },
+        paperHeight: { type: "number", description: "Paper height in inches" },
+        marginTop: { type: "number", description: "Top margin in inches" },
+        marginBottom: { type: "number", description: "Bottom margin in inches" },
+        marginLeft: { type: "number", description: "Left margin in inches" },
+        marginRight: { type: "number", description: "Right margin in inches" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+
+  // CSS INJECTION
+  {
+    name: "chrome_inject_css",
+    description: "Inject CSS stylesheet into the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        css: { type: "string", description: "CSS code to inject" },
+        tabId: { type: "number" },
+      },
+      required: ["css"],
+    },
+  },
+  {
+    name: "chrome_remove_css",
+    description: "Remove previously injected CSS",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cssId: { type: "string", description: "ID of injected CSS to remove" },
+        tabId: { type: "number" },
+      },
+      required: ["cssId"],
+    },
+  },
+
+  // TEXT SELECTION
+  {
+    name: "chrome_select_text",
+    description: "Select/highlight text on the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "Element containing text to select" },
+        startOffset: { type: "number", description: "Start character offset" },
+        endOffset: { type: "number", description: "End character offset" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_get_selected_text",
+    description: "Get currently selected/highlighted text",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_focus_element",
+    description: "Focus an element without clicking",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_clear_input",
+    description: "Clear an input field",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector of input" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  ,
+  // PHASE 1: ADVANCED MOUSE & KEYBOARD
+  {
+    name: "chrome_double_click",
+    description: "Double click an element by CSS selector or at specific coordinates",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector (optional if x/y provided)" },
+        x: { type: "number", description: "X coordinate for visual double click" },
+        y: { type: "number", description: "Y coordinate for visual double click" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_right_click",
+    description: "Right click an element to open context menu",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector (optional if x/y provided)" },
+        x: { type: "number", description: "X coordinate" },
+        y: { type: "number", description: "Y coordinate" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_middle_click",
+    description: "Middle click (open in new tab)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector (optional if x/y provided)" },
+        x: { type: "number", description: "X coordinate" },
+        y: { type: "number", description: "Y coordinate" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_drag_drop",
+    description: "Drag and drop from element A to element B or coordinates",
+    inputSchema: {
+      type: "object",
+      properties: {
+        fromSelector: { type: "string", description: "Source element selector" },
+        toSelector: { type: "string", description: "Target element selector" },
+        fromX: { type: "number", description: "Source X coordinate" },
+        fromY: { type: "number", description: "Source Y coordinate" },
+        toX: { type: "number", description: "Target X coordinate" },
+        toY: { type: "number", description: "Target Y coordinate" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_keyboard_shortcut",
+    description: "Execute keyboard shortcuts like Ctrl+C, Ctrl+V, Ctrl+A, etc.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        shortcut: { type: "string", description: "Shortcut like 'Ctrl+C', 'Ctrl+V', 'Ctrl+A', 'Ctrl+Z', 'Ctrl+S'" },
+        tabId: { type: "number" },
+      },
+      required: ["shortcut"],
+    },
+  },
+  {
+    name: "chrome_wait_for_navigation",
+    description: "Wait for page navigation to complete after clicking a link",
+    inputSchema: {
+      type: "object",
+      properties: {
+        timeout: { type: "number", description: "Max wait in ms (default 30000)" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_wait_for_network_idle",
+    description: "Wait until no network requests for N milliseconds",
+    inputSchema: {
+      type: "object",
+      properties: {
+        idleTime: { type: "number", description: "Idle time in ms (default 500)" },
+        timeout: { type: "number", description: "Max wait in ms (default 30000)" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_screenshot_element",
+    description: "Take screenshot of a specific element",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector of element" },
+        format: { type: "string", enum: ["png", "jpeg"] },
+        quality: { type: "number", description: "JPEG quality 0-100" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_screenshot_fullpage",
+    description: "Take full page screenshot (scrolls and stitches)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        format: { type: "string", enum: ["png", "jpeg"] },
+        quality: { type: "number", description: "JPEG quality 0-100" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_pdf_print",
+    description: "Save current page as PDF",
+    inputSchema: {
+      type: "object",
+      properties: {
+        landscape: { type: "boolean", description: "Landscape orientation" },
+        displayHeaderFooter: { type: "boolean" },
+        printBackground: { type: "boolean", description: "Print background graphics" },
+        scale: { type: "number", description: "Scale 0.1-2.0 (default 1)" },
+        paperWidth: { type: "number", description: "Paper width in inches" },
+        paperHeight: { type: "number", description: "Paper height in inches" },
+        marginTop: { type: "number", description: "Top margin in inches" },
+        marginBottom: { type: "number", description: "Bottom margin in inches" },
+        marginLeft: { type: "number", description: "Left margin in inches" },
+        marginRight: { type: "number", description: "Right margin in inches" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_inject_css",
+    description: "Inject CSS stylesheet into the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        css: { type: "string", description: "CSS code to inject" },
+        tabId: { type: "number" },
+      },
+      required: ["css"],
+    },
+  },
+  {
+    name: "chrome_remove_css",
+    description: "Remove previously injected CSS",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cssId: { type: "string", description: "ID of injected CSS to remove" },
+        tabId: { type: "number" },
+      },
+      required: ["cssId"],
+    },
+  },
+  {
+    name: "chrome_select_text",
+    description: "Select/highlight text on the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "Element containing text to select" },
+        startOffset: { type: "number", description: "Start character offset" },
+        endOffset: { type: "number", description: "End character offset" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_get_selected_text",
+    description: "Get currently selected/highlighted text",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_focus_element",
+    description: "Focus an element without clicking",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_clear_input",
+    description: "Clear an input field",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector of input" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  }
+  ,
+  // PHASE 2: TESTING & MOCKING TOOLS
+  {
+    name: "chrome_mock_geolocation",
+    description: "Mock GPS location for testing",
+    inputSchema: {
+      type: "object",
+      properties: {
+        latitude: { type: "number", description: "Latitude coordinate" },
+        longitude: { type: "number", description: "Longitude coordinate" },
+        accuracy: { type: "number", description: "Accuracy in meters (default 100)" },
+        tabId: { type: "number" },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+  {
+    name: "chrome_mock_timezone",
+    description: "Override timezone of the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        timezoneId: { type: "string", description: "IANA timezone ID e.g. 'America/New_York', 'Asia/Tokyo'" },
+        tabId: { type: "number" },
+      },
+      required: ["timezoneId"],
+    },
+  },
+  {
+    name: "chrome_mock_locale",
+    description: "Override locale/language of the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        locale: { type: "string", description: "Locale code e.g. 'en-US', 'ja-JP', 'fr-FR'" },
+        tabId: { type: "number" },
+      },
+      required: ["locale"],
+    },
+  },
+  {
+    name: "chrome_mock_battery",
+    description: "Mock battery status API",
+    inputSchema: {
+      type: "object",
+      properties: {
+        charging: { type: "boolean", description: "Is battery charging" },
+        chargingTime: { type: "number", description: "Seconds until fully charged" },
+        dischargingTime: { type: "number", description: "Seconds until empty" },
+        level: { type: "number", description: "Battery level 0.0-1.0" },
+        tabId: { type: "number" },
+      },
+      required: ["charging", "level"],
+    },
+  },
+  {
+    name: "chrome_mock_media_type",
+    description: "Override CSS media type (print/screen)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        mediaType: { type: "string", enum: ["screen", "print"], description: "Media type" },
+        tabId: { type: "number" },
+      },
+      required: ["mediaType"],
+    },
+  },
+  {
+    name: "chrome_emulate_vision",
+    description: "Emulate vision deficiencies (color blindness, blurred vision)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: { 
+          type: "string", 
+          enum: ["none", "achromatopsia", "blurredVision", "deuteranopia", "protanopia", "tritanopia"],
+          description: "Vision deficiency type"
+        },
+        tabId: { type: "number" },
+      },
+      required: ["type"],
+    },
+  },
+  {
+    name: "chrome_cpu_throttle",
+    description: "Throttle CPU to simulate slower devices",
+    inputSchema: {
+      type: "object",
+      properties: {
+        rate: { type: "number", description: "Throttle rate (1 = no throttle, 4 = 4x slowdown)" },
+        tabId: { type: "number" },
+      },
+      required: ["rate"],
+    },
+  },
+  {
+    name: "chrome_mock_date_time",
+    description: "Override Date.now() for deterministic testing",
+    inputSchema: {
+      type: "object",
+      properties: {
+        timestamp: { type: "number", description: "Unix timestamp in milliseconds" },
+        freeze: { type: "boolean", description: "Freeze time at this value" },
+        tabId: { type: "number" },
+      },
+      required: ["timestamp"],
+    },
+  },
+  {
+    name: "chrome_modify_response_body",
+    description: "Modify response body before page receives it",
+    inputSchema: {
+      type: "object",
+      properties: {
+        urlPattern: { type: "string", description: "URL pattern to match" },
+        newBody: { type: "string", description: "New response body" },
+        tabId: { type: "number" },
+      },
+      required: ["urlPattern", "newBody"],
+    },
+  },
+  {
+    name: "chrome_get_ws_frames",
+    description: "Capture WebSocket frames",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: { type: "number", description: "Max frames to return (default 100)" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_set_extra_headers",
+    description: "Add extra HTTP headers to all requests",
+    inputSchema: {
+      type: "object",
+      properties: {
+        headers: { type: "object", description: "Headers to add" },
+        tabId: { type: "number" },
+      },
+      required: ["headers"],
+    },
+  },
+  {
+    name: "chrome_get_request_body",
+    description: "Get POST body of a sent request",
+    inputSchema: {
+      type: "object",
+      properties: {
+        requestId: { type: "string", description: "Request ID from debug_get_network" },
+        tabId: { type: "number" },
+      },
+      required: ["requestId"],
+    },
+  }
+  ,
+  // PHASE 3: ADVANCED DEBUGGING TOOLS
+  {
+    name: "chrome_profiling_start",
+    description: "Start CPU profiling",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_profiling_stop",
+    description: "Stop CPU profiling and get profile data",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_heap_snapshot",
+    description: "Take a heap snapshot for memory analysis",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_trace_start",
+    description: "Start tracing (Timeline/Performance recording)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        categories: { type: "array", items: { type: "string" }, description: "Trace categories" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_trace_stop",
+    description: "Stop tracing and get trace events",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_pause_on_exception",
+    description: "Pause debugger on exceptions",
+    inputSchema: {
+      type: "object",
+      properties: {
+        state: { type: "string", enum: ["none", "uncaught", "all"], description: "When to pause" },
+        tabId: { type: "number" },
+      },
+      required: ["state"],
+    },
+  },
+  {
+    name: "chrome_debugger_resume",
+    description: "Resume execution after debugger pause",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_debugger_step_over",
+    description: "Step over current line",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_debugger_step_into",
+    description: "Step into function call",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_debugger_step_out",
+    description: "Step out of current function",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_get_call_frames",
+    description: "Get call stack when paused",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_evaluate_on_call_frame",
+    description: "Evaluate expression in paused call frame",
+    inputSchema: {
+      type: "object",
+      properties: {
+        callFrameId: { type: "string", description: "Call frame ID" },
+        expression: { type: "string", description: "Expression to evaluate" },
+        tabId: { type: "number" },
+      },
+      required: ["callFrameId", "expression"],
+    },
+  },
+  {
+    name: "chrome_get_script_source",
+    description: "Get source code of a script",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scriptId: { type: "string", description: "Script ID" },
+        tabId: { type: "number" },
+      },
+      required: ["scriptId"],
+    },
+  },
+  {
+    name: "chrome_live_edit_script",
+    description: "Live edit JavaScript without reload",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scriptId: { type: "string", description: "Script ID to edit" },
+        scriptSource: { type: "string", description: "New script source" },
+        tabId: { type: "number" },
+      },
+      required: ["scriptId", "scriptSource"],
+    },
+  },
+  {
+    name: "chrome_call_function_on",
+    description: "Call function on remote object",
+    inputSchema: {
+      type: "object",
+      properties: {
+        objectId: { type: "string", description: "Remote object ID" },
+        functionDeclaration: { type: "string", description: "Function to call" },
+        arguments: { type: "array", description: "Function arguments" },
+        tabId: { type: "number" },
+      },
+      required: ["objectId", "functionDeclaration"],
+    },
+  },
+  {
+    name: "chrome_get_properties",
+    description: "Get properties of a remote object",
+    inputSchema: {
+      type: "object",
+      properties: {
+        objectId: { type: "string", description: "Remote object ID" },
+        ownProperties: { type: "boolean", description: "Only own properties" },
+        tabId: { type: "number" },
+      },
+      required: ["objectId"],
+    },
+  },
+  {
+    name: "chrome_compile_script",
+    description: "Check JavaScript syntax without executing",
+    inputSchema: {
+      type: "object",
+      properties: {
+        expression: { type: "string", description: "JavaScript code to compile" },
+        sourceURL: { type: "string", description: "Source URL for error reporting" },
+        tabId: { type: "number" },
+      },
+      required: ["expression"],
+    },
+  }
+  ,
+  // PHASE 4: STORAGE & API TOOLS
+  {
+    name: "chrome_get_indexeddb",
+    description: "Read IndexedDB data from the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        databaseName: { type: "string", description: "Database name" },
+        objectStoreName: { type: "string", description: "Object store name" },
+        tabId: { type: "number" },
+      },
+      required: ["databaseName", "objectStoreName"],
+    },
+  },
+  {
+    name: "chrome_get_session_storage",
+    description: "Read sessionStorage from the page",
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { type: "string", description: "Specific key (omit to get all)" },
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_get_cache_storage",
+    description: "Read Service Worker cache storage",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cacheName: { type: "string", description: "Cache name" },
+        tabId: { type: "number" },
+      },
+      required: ["cacheName"],
+    },
+  },
+  {
+    name: "chrome_get_security_state",
+    description: "Get HTTPS security state and certificate info",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tabId: { type: "number" },
+      },
+    },
+  },
+  {
+    name: "chrome_ignore_cert_errors",
+    description: "Ignore SSL certificate errors",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ignore: { type: "boolean", description: "true to ignore, false to restore" },
+        tabId: { type: "number" },
+      },
+      required: ["ignore"],
+    },
+  },
+  {
+    name: "chrome_set_color_scheme",
+    description: "Force dark or light mode",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scheme: { type: "string", enum: ["light", "dark", "no-preference"], description: "Color scheme" },
+        tabId: { type: "number" },
+      },
+      required: ["scheme"],
+    },
+  },
+  {
+    name: "chrome_highlight_element",
+    description: "Highlight element on screen (for debugging)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector" },
+        color: { type: "string", description: "Highlight color (default red)" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  },
+  {
+    name: "chrome_hide_element",
+    description: "Hide or show element",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector" },
+        hide: { type: "boolean", description: "true to hide, false to show" },
+        tabId: { type: "number" },
+      },
+      required: ["selector", "hide"],
+    },
+  },
+  {
+    name: "chrome_dom_set_attribute",
+    description: "Set DOM attribute via CDP",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector" },
+        name: { type: "string", description: "Attribute name" },
+        value: { type: "string", description: "Attribute value" },
+        tabId: { type: "number" },
+      },
+      required: ["selector", "name", "value"],
+    },
+  },
+  {
+    name: "chrome_dom_remove_node",
+    description: "Remove DOM node",
+    inputSchema: {
+      type: "object",
+      properties: {
+        selector: { type: "string", description: "CSS selector" },
+        tabId: { type: "number" },
+      },
+      required: ["selector"],
+    },
+  }
 ];
 
 // TOOL GRAPH (server-side, no extension needed)

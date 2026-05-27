@@ -1513,11 +1513,950 @@ function connect() {
           break;
         }
 
+// PHASE 1 NEW TOOLS - Insert before "default:" case in background.js
+
+        // ADVANCED MOUSE INTERACTIONS
+        
+        case 'double_click': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          if (params.selector) {
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              func: (selector) => {
+                const el = document.querySelector(selector);
+                if (!el) throw new Error(`Element not found: ${selector}`);
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+                return 'Double clicked';
+              },
+              args: [params.selector]
+            });
+            result = `Double clicked: ${params.selector}`;
+          } else if (params.x !== undefined && params.y !== undefined) {
+            await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+            await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+              type: 'mousePressed', x: params.x, y: params.y, button: 'left', clickCount: 2
+            });
+            await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+              type: 'mouseReleased', x: params.x, y: params.y, button: 'left', clickCount: 2
+            });
+            result = `Double clicked at (${params.x}, ${params.y})`;
+          }
+          break;
+        }
+
+        case 'right_click': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          if (params.selector) {
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              func: (selector) => {
+                const el = document.querySelector(selector);
+                if (!el) throw new Error(`Element not found: ${selector}`);
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+                return 'Right clicked';
+              },
+              args: [params.selector]
+            });
+            result = `Right clicked: ${params.selector}`;
+          } else if (params.x !== undefined && params.y !== undefined) {
+            await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+            await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+              type: 'mousePressed', x: params.x, y: params.y, button: 'right', clickCount: 1
+            });
+            await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+              type: 'mouseReleased', x: params.x, y: params.y, button: 'right', clickCount: 1
+            });
+            result = `Right clicked at (${params.x}, ${params.y})`;
+          }
+          break;
+        }
+
+        case 'middle_click': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          if (params.selector) {
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              func: (selector) => {
+                const el = document.querySelector(selector);
+                if (!el) throw new Error(`Element not found: ${selector}`);
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }));
+                return 'Middle clicked';
+              },
+              args: [params.selector]
+            });
+            result = `Middle clicked: ${params.selector}`;
+          } else if (params.x !== undefined && params.y !== undefined) {
+            await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+            await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+              type: 'mousePressed', x: params.x, y: params.y, button: 'middle', clickCount: 1
+            });
+            await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+              type: 'mouseReleased', x: params.x, y: params.y, button: 'middle', clickCount: 1
+            });
+            result = `Middle clicked at (${params.x}, ${params.y})`;
+          }
+          break;
+        }
+
+        case 'drag_drop': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          let fromX, fromY, toX, toY;
+          
+          if (params.fromSelector || params.toSelector) {
+            const [{ result: coords }] = await chrome.scripting.executeScript({
+              target: { tabId },
+              func: (fromSel, toSel) => {
+                const from = fromSel ? document.querySelector(fromSel) : null;
+                const to = toSel ? document.querySelector(toSel) : null;
+                if (fromSel && !from) throw new Error(`From element not found: ${fromSel}`);
+                if (toSel && !to) throw new Error(`To element not found: ${toSel}`);
+                const fromRect = from?.getBoundingClientRect();
+                const toRect = to?.getBoundingClientRect();
+                return {
+                  fromX: fromRect ? fromRect.x + fromRect.width / 2 : null,
+                  fromY: fromRect ? fromRect.y + fromRect.height / 2 : null,
+                  toX: toRect ? toRect.x + toRect.width / 2 : null,
+                  toY: toRect ? toRect.y + toRect.height / 2 : null
+                };
+              },
+              args: [params.fromSelector || null, params.toSelector || null]
+            });
+            fromX = coords.fromX ?? params.fromX;
+            fromY = coords.fromY ?? params.fromY;
+            toX = coords.toX ?? params.toX;
+            toY = coords.toY ?? params.toY;
+          } else {
+            fromX = params.fromX;
+            fromY = params.fromY;
+            toX = params.toX;
+            toY = params.toY;
+          }
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchDragEvent', {
+            type: 'dragEnter', x: fromX, y: fromY, data: { items: [], dragOperationsMask: 1 }
+          });
+          await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+            type: 'mousePressed', x: fromX, y: fromY, button: 'left', clickCount: 1
+          });
+          await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+            type: 'mouseMoved', x: toX, y: toY, button: 'left'
+          });
+          await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchMouseEvent', {
+            type: 'mouseReleased', x: toX, y: toY, button: 'left', clickCount: 1
+          });
+          result = `Dragged from (${fromX}, ${fromY}) to (${toX}, ${toY})`;
+          break;
+        }
+
+        case 'keyboard_shortcut': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const shortcutMap = {
+            'Ctrl+C': { key: 'c', ctrl: true },
+            'Ctrl+V': { key: 'v', ctrl: true },
+            'Ctrl+X': { key: 'x', ctrl: true },
+            'Ctrl+A': { key: 'a', ctrl: true },
+            'Ctrl+Z': { key: 'z', ctrl: true },
+            'Ctrl+Y': { key: 'y', ctrl: true },
+            'Ctrl+S': { key: 's', ctrl: true },
+            'Ctrl+F': { key: 'f', ctrl: true },
+            'Ctrl+P': { key: 'p', ctrl: true },
+            'Ctrl+N': { key: 'n', ctrl: true },
+            'Ctrl+T': { key: 't', ctrl: true },
+            'Ctrl+W': { key: 'w', ctrl: true },
+            'Alt+F4': { key: 'F4', alt: true },
+          };
+          
+          const shortcut = shortcutMap[params.shortcut];
+          if (!shortcut) throw new Error(`Unknown shortcut: ${params.shortcut}`);
+          
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          const modifiers = (shortcut.ctrl ? 2 : 0) | (shortcut.alt ? 1 : 0) | (shortcut.shift ? 8 : 0);
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchKeyEvent', {
+            type: 'keyDown', key: shortcut.key, modifiers
+          });
+          await chrome.debugger.sendCommand({ tabId }, 'Input.dispatchKeyEvent', {
+            type: 'keyUp', key: shortcut.key, modifiers
+          });
+          result = `Executed shortcut: ${params.shortcut}`;
+          break;
+        }
+
+        // WAIT TOOLS
+        
+        case 'wait_for_navigation': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          const timeout = params.timeout || 30000;
+          
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          await chrome.debugger.sendCommand({ tabId }, 'Page.enable');
+          
+          const waitPromise = new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Navigation timeout')), timeout);
+            const listener = (src, method) => {
+              if (src.tabId === tabId && method === 'Page.loadEventFired') {
+                clearTimeout(timer);
+                chrome.debugger.onEvent.removeListener(listener);
+                resolve(true);
+              }
+            };
+            chrome.debugger.onEvent.addListener(listener);
+          });
+          
+          await waitPromise;
+          result = 'Navigation completed';
+          break;
+        }
+
+        case 'wait_for_network_idle': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          const idleTime = params.idleTime || 500;
+          const timeout = params.timeout || 30000;
+          
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          await chrome.debugger.sendCommand({ tabId }, 'Network.enable');
+          
+          let activeRequests = 0;
+          let lastActivityTime = Date.now();
+          
+          const waitPromise = new Promise((resolve, reject) => {
+            const startTime = Date.now();
+            const listener = (src, method) => {
+              if (src.tabId !== tabId) return;
+              if (method === 'Network.requestWillBeSent') {
+                activeRequests++;
+                lastActivityTime = Date.now();
+              }
+              if (method === 'Network.loadingFinished' || method === 'Network.loadingFailed') {
+                activeRequests--;
+                lastActivityTime = Date.now();
+              }
+            };
+            chrome.debugger.onEvent.addListener(listener);
+            
+            const checkIdle = setInterval(() => {
+              if (Date.now() - startTime > timeout) {
+                clearInterval(checkIdle);
+                chrome.debugger.onEvent.removeListener(listener);
+                reject(new Error('Network idle timeout'));
+              }
+              if (activeRequests === 0 && Date.now() - lastActivityTime >= idleTime) {
+                clearInterval(checkIdle);
+                chrome.debugger.onEvent.removeListener(listener);
+                resolve(true);
+              }
+            }, 100);
+          });
+          
+          await waitPromise;
+          result = 'Network idle';
+          break;
+        }
+
+        // SCREENSHOT TOOLS
+        
+        case 'screenshot_element': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const [{ result: rect }] = await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (selector) => {
+              const el = document.querySelector(selector);
+              if (!el) throw new Error(`Element not found: ${selector}`);
+              const r = el.getBoundingClientRect();
+              return { x: r.x, y: r.y, width: r.width, height: r.height };
+            },
+            args: [params.selector]
+          });
+          
+          const screenshot = await chrome.debugger.sendCommand({ tabId }, 'Page.captureScreenshot', {
+            format: params.format || 'png',
+            quality: params.quality || 90,
+            clip: { x: rect.x, y: rect.y, width: rect.width, height: rect.height, scale: 1 }
+          });
+          result = 'data:image/' + (params.format || 'png') + ';base64,' + screenshot.data;
+          break;
+        }
+
+        case 'screenshot_fullpage': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const metrics = await chrome.debugger.sendCommand({ tabId }, 'Page.getLayoutMetrics');
+          const width = metrics.contentSize.width;
+          const height = metrics.contentSize.height;
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setDeviceMetricsOverride', {
+            width: width,
+            height: height,
+            deviceScaleFactor: 1,
+            mobile: false
+          });
+          
+          const screenshot = await chrome.debugger.sendCommand({ tabId }, 'Page.captureScreenshot', {
+            format: params.format || 'png',
+            quality: params.quality || 90,
+            captureBeyondViewport: true
+          });
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.clearDeviceMetricsOverride');
+          
+          result = 'data:image/' + (params.format || 'png') + ';base64,' + screenshot.data;
+          break;
+        }
+
+        case 'pdf_print': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const pdf = await chrome.debugger.sendCommand({ tabId }, 'Page.printToPDF', {
+            landscape: params.landscape || false,
+            displayHeaderFooter: params.displayHeaderFooter || false,
+            printBackground: params.printBackground !== false,
+            scale: params.scale || 1,
+            paperWidth: params.paperWidth || 8.5,
+            paperHeight: params.paperHeight || 11,
+            marginTop: params.marginTop || 0.4,
+            marginBottom: params.marginBottom || 0.4,
+            marginLeft: params.marginLeft || 0.4,
+            marginRight: params.marginRight || 0.4,
+            preferCSSPageSize: true
+          });
+          
+          result = 'data:application/pdf;base64,' + pdf.data;
+          break;
+        }
+
+        // CSS INJECTION
+        
+        case 'inject_css': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const cssId = 'oc-injected-' + Date.now();
+          await chrome.scripting.insertCSS({
+            target: { tabId },
+            css: params.css,
+            origin: 'USER'
+          });
+          
+          if (!self._injectedCSS) self._injectedCSS = {};
+          if (!self._injectedCSS[tabId]) self._injectedCSS[tabId] = [];
+          self._injectedCSS[tabId].push({ id: cssId, css: params.css });
+          
+          result = JSON.stringify({ cssId, injected: true });
+          break;
+        }
+
+        case 'remove_css': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const injected = (self._injectedCSS || {})[tabId] || [];
+          const item = injected.find(i => i.id === params.cssId);
+          if (!item) throw new Error(`CSS ID not found: ${params.cssId}`);
+          
+          await chrome.scripting.removeCSS({
+            target: { tabId },
+            css: item.css
+          });
+          
+          self._injectedCSS[tabId] = injected.filter(i => i.id !== params.cssId);
+          result = `CSS removed: ${params.cssId}`;
+          break;
+        }
+
+        // TEXT SELECTION
+        
+        case 'select_text': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (selector, startOffset, endOffset) => {
+              const el = document.querySelector(selector);
+              if (!el) throw new Error(`Element not found: ${selector}`);
+              
+              const range = document.createRange();
+              const textNode = el.firstChild || el;
+              range.setStart(textNode, startOffset || 0);
+              range.setEnd(textNode, endOffset || textNode.textContent?.length || 0);
+              
+              const selection = window.getSelection();
+              selection.removeAllRanges();
+              selection.addRange(range);
+              
+              return 'Text selected';
+            },
+            args: [params.selector, params.startOffset, params.endOffset]
+          });
+          
+          result = 'Text selected';
+          break;
+        }
+
+        case 'get_selected_text': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const [{ result: selectedText }] = await chrome.scripting.executeScript({
+            target: { tabId },
+            func: () => window.getSelection().toString()
+          });
+          
+          result = selectedText || '';
+          break;
+        }
+
+        case 'focus_element': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (selector) => {
+              const el = document.querySelector(selector);
+              if (!el) throw new Error(`Element not found: ${selector}`);
+              el.focus();
+              return 'Element focused';
+            },
+            args: [params.selector]
+          });
+          
+          result = `Focused: ${params.selector}`;
+          break;
+        }
+
+        case 'clear_input': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (selector) => {
+              const el = document.querySelector(selector);
+              if (!el) throw new Error(`Element not found: ${selector}`);
+              el.value = '';
+              el.dispatchEvent(new Event('input', { bubbles: true }));
+              el.dispatchEvent(new Event('change', { bubbles: true }));
+              return 'Input cleared';
+            },
+            args: [params.selector]
+          });
+          
+          result = `Cleared: ${params.selector}`;
+          break;
+        }
+        // PHASE 2: TESTING & MOCKING TOOLS
+        
+        case 'mock_geolocation': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setGeolocationOverride', {
+            latitude: params.latitude,
+            longitude: params.longitude,
+            accuracy: params.accuracy || 100
+          });
+          
+          result = `Geolocation set to (${params.latitude}, ${params.longitude})`;
+          break;
+        }
+
+        case 'mock_timezone': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setTimezoneOverride', {
+            timezoneId: params.timezoneId
+          });
+          
+          result = `Timezone set to ${params.timezoneId}`;
+          break;
+        }
+
+        case 'mock_locale': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setLocaleOverride', {
+            locale: params.locale
+          });
+          
+          result = `Locale set to ${params.locale}`;
+          break;
+        }
+
+        case 'mock_battery': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (charging, level, chargingTime, dischargingTime) => {
+              const mockBattery = {
+                charging: charging,
+                chargingTime: chargingTime || Infinity,
+                dischargingTime: dischargingTime || Infinity,
+                level: level,
+                addEventListener: () => {},
+                removeEventListener: () => {}
+              };
+              
+              Object.defineProperty(navigator, 'getBattery', {
+                value: () => Promise.resolve(mockBattery),
+                writable: false
+              });
+              
+              return 'Battery mocked';
+            },
+            args: [params.charging, params.level, params.chargingTime, params.dischargingTime]
+          });
+          
+          result = `Battery mocked: ${params.charging ? 'charging' : 'discharging'}, level ${params.level}`;
+          break;
+        }
+
+        case 'mock_media_type': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setEmulatedMedia', {
+            media: params.mediaType
+          });
+          
+          result = `Media type set to ${params.mediaType}`;
+          break;
+        }
+
+        case 'emulate_vision': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setEmulatedVisionDeficiency', {
+            type: params.type
+          });
+          
+          result = `Vision deficiency emulated: ${params.type}`;
+          break;
+        }
+
+        case 'cpu_throttle': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setCPUThrottlingRate', {
+            rate: params.rate
+          });
+          
+          result = `CPU throttled to ${params.rate}x`;
+          break;
+        }
+
+        case 'mock_date_time': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (timestamp, freeze) => {
+              const originalDate = Date;
+              const mockTime = timestamp;
+              let offset = mockTime - originalDate.now();
+              
+              if (freeze) {
+                Date = class extends originalDate {
+                  constructor(...args) {
+                    if (args.length === 0) {
+                      super(mockTime);
+                    } else {
+                      super(...args);
+                    }
+                  }
+                  static now() { return mockTime; }
+                };
+              } else {
+                Date = class extends originalDate {
+                  constructor(...args) {
+                    if (args.length === 0) {
+                      super(originalDate.now() + offset);
+                    } else {
+                      super(...args);
+                    }
+                  }
+                  static now() { return originalDate.now() + offset; }
+                };
+              }
+              
+              Date.UTC = originalDate.UTC;
+              Date.parse = originalDate.parse;
+              
+              return 'Date mocked';
+            },
+            args: [params.timestamp, params.freeze || false]
+          });
+          
+          result = `Date/time mocked to ${new Date(params.timestamp).toISOString()}`;
+          break;
+        }
+
+        case 'modify_response_body': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Fetch.enable', {
+            patterns: [{ urlPattern: params.urlPattern, requestStage: 'Response' }]
+          });
+          
+          if (!self._responseModifiers) self._responseModifiers = {};
+          self._responseModifiers[params.urlPattern] = params.newBody;
+          
+          chrome.debugger.onEvent.addListener(async (src, method, evtParams) => {
+            if (src.tabId !== tabId || method !== 'Fetch.requestPaused') return;
+            if (!evtParams.responseStatusCode) return;
+            
+            const modifier = self._responseModifiers[params.urlPattern];
+            if (modifier && evtParams.request.url.includes(params.urlPattern.replace('*', ''))) {
+              await chrome.debugger.sendCommand({ tabId }, 'Fetch.fulfillRequest', {
+                requestId: evtParams.requestId,
+                responseCode: evtParams.responseStatusCode,
+                responseHeaders: evtParams.responseHeaders,
+                body: btoa(modifier)
+              });
+            } else {
+              await chrome.debugger.sendCommand({ tabId }, 'Fetch.continueRequest', {
+                requestId: evtParams.requestId
+              });
+            }
+          });
+          
+          result = `Response body modifier set for: ${params.urlPattern}`;
+          break;
+        }
+
+        case 'get_ws_frames': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const frames = (self._wsFrames || {})[tabId] || [];
+          result = JSON.stringify(frames.slice(-(params.limit || 100)));
+          break;
+        }
+
+        case 'set_extra_headers': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Network.setExtraHTTPHeaders', {
+            headers: params.headers
+          });
+          
+          result = `Extra headers set: ${Object.keys(params.headers).join(', ')}`;
+          break;
+        }
+
+        case 'get_request_body': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const body = await chrome.debugger.sendCommand({ tabId }, 'Network.getRequestPostData', {
+            requestId: params.requestId
+          });
+          
+          result = body.postData || '';
+          break;
+        }
+
+
         default:
           throw new Error(`Unknown method: ${method}`);
       }
 
       socket.send(JSON.stringify({ id, result }));
+        // PHASE 3: ADVANCED DEBUGGING TOOLS
+        
+        case 'profiling_start': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Profiler.enable');
+          await chrome.debugger.sendCommand({ tabId }, 'Profiler.start');
+          
+          result = 'CPU profiling started';
+          break;
+        }
+
+        case 'profiling_stop': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const profile = await chrome.debugger.sendCommand({ tabId }, 'Profiler.stop');
+          result = JSON.stringify(profile.profile);
+          break;
+        }
+
+        case 'heap_snapshot': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'HeapProfiler.enable');
+          
+          if (!self._heapChunks) self._heapChunks = {};
+          self._heapChunks[tabId] = [];
+          
+          const listener = (src, method, evtParams) => {
+            if (src.tabId === tabId && method === 'HeapProfiler.addHeapSnapshotChunk') {
+              self._heapChunks[tabId].push(evtParams.chunk);
+            }
+          };
+          chrome.debugger.onEvent.addListener(listener);
+          
+          await chrome.debugger.sendCommand({ tabId }, 'HeapProfiler.takeHeapSnapshot', {
+            reportProgress: false
+          });
+          
+          chrome.debugger.onEvent.removeListener(listener);
+          
+          const snapshot = self._heapChunks[tabId].join('');
+          delete self._heapChunks[tabId];
+          
+          result = snapshot;
+          break;
+        }
+
+        case 'trace_start': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const categories = params.categories || [
+            'devtools.timeline', 'v8.execute', 'disabled-by-default-devtools.timeline',
+            'disabled-by-default-devtools.timeline.frame', 'toplevel', 'blink.console',
+            'blink.user_timing', 'latencyInfo', 'disabled-by-default-v8.cpu_profiler'
+          ];
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Tracing.start', {
+            categories: categories.join(','),
+            options: 'sampling-frequency=10000'
+          });
+          
+          if (!self._traceEvents) self._traceEvents = {};
+          self._traceEvents[tabId] = [];
+          
+          result = 'Tracing started';
+          break;
+        }
+
+        case 'trace_stop': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const listener = (src, method, evtParams) => {
+            if (src.tabId === tabId && method === 'Tracing.dataCollected') {
+              self._traceEvents[tabId].push(...evtParams.value);
+            }
+          };
+          chrome.debugger.onEvent.addListener(listener);
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Tracing.end');
+          
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          chrome.debugger.onEvent.removeListener(listener);
+          
+          const events = self._traceEvents[tabId] || [];
+          delete self._traceEvents[tabId];
+          
+          result = JSON.stringify(events);
+          break;
+        }
+
+        case 'pause_on_exception': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.enable');
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.setPauseOnExceptions', {
+            state: params.state
+          });
+          
+          result = `Pause on exception set to: ${params.state}`;
+          break;
+        }
+
+        case 'debugger_resume': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.resume');
+          result = 'Debugger resumed';
+          break;
+        }
+
+        case 'debugger_step_over': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.stepOver');
+          result = 'Stepped over';
+          break;
+        }
+
+        case 'debugger_step_into': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.stepInto');
+          result = 'Stepped into';
+          break;
+        }
+
+        case 'debugger_step_out': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.stepOut');
+          result = 'Stepped out';
+          break;
+        }
+
+        case 'get_call_frames': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          if (!self._pausedCallFrames || !self._pausedCallFrames[tabId]) {
+            throw new Error('Debugger not paused');
+          }
+          
+          result = JSON.stringify(self._pausedCallFrames[tabId]);
+          break;
+        }
+
+        case 'evaluate_on_call_frame': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const evalResult = await chrome.debugger.sendCommand({ tabId }, 'Debugger.evaluateOnCallFrame', {
+            callFrameId: params.callFrameId,
+            expression: params.expression
+          });
+          
+          result = JSON.stringify(evalResult.result);
+          break;
+        }
+
+        case 'get_script_source': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const source = await chrome.debugger.sendCommand({ tabId }, 'Debugger.getScriptSource', {
+            scriptId: params.scriptId
+          });
+          
+          result = source.scriptSource;
+          break;
+        }
+
+        case 'live_edit_script': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Debugger.enable');
+          const editResult = await chrome.debugger.sendCommand({ tabId }, 'Debugger.setScriptSource', {
+            scriptId: params.scriptId,
+            scriptSource: params.scriptSource
+          });
+          
+          result = JSON.stringify(editResult);
+          break;
+        }
+
+        case 'call_function_on': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const callResult = await chrome.debugger.sendCommand({ tabId }, 'Runtime.callFunctionOn', {
+            objectId: params.objectId,
+            functionDeclaration: params.functionDeclaration,
+            arguments: params.arguments || []
+          });
+          
+          result = JSON.stringify(callResult.result);
+          break;
+        }
+
+        case 'get_properties': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const props = await chrome.debugger.sendCommand({ tabId }, 'Runtime.getProperties', {
+            objectId: params.objectId,
+            ownProperties: params.ownProperties !== false
+          });
+          
+          result = JSON.stringify(props.result);
+          break;
+        }
+
+        case 'compile_script': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Runtime.enable');
+          const compileResult = await chrome.debugger.sendCommand({ tabId }, 'Runtime.compileScript', {
+            expression: params.expression,
+            sourceURL: params.sourceURL || '',
+            persistScript: false
+          });
+          
+          if (compileResult.exceptionDetails) {
+            result = JSON.stringify({ 
+              valid: false, 
+              error: compileResult.exceptionDetails 
+            });
+          } else {
+            result = JSON.stringify({ 
+              valid: true, 
+              scriptId: compileResult.scriptId 
+            });
+          }
+          break;
+        }
+
     } catch (error) {
       console.error('Command error:', error);
       socket.send(JSON.stringify({ id, error: error.message }));
@@ -1547,6 +2486,201 @@ function connect() {
     console.error('Socket error:', err);
     isConnected = false;
     clearInterval(pingTimer);
+        // PHASE 4: STORAGE & API TOOLS
+        
+        case 'get_indexeddb': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'IndexedDB.enable');
+          
+          const data = await chrome.debugger.sendCommand({ tabId }, 'IndexedDB.requestData', {
+            securityOrigin: new URL((await chrome.tabs.get(tabId)).url).origin,
+            databaseName: params.databaseName,
+            objectStoreName: params.objectStoreName,
+            indexName: '',
+            skipCount: 0,
+            pageSize: 100
+          });
+          
+          result = JSON.stringify(data.objectStoreDataEntries);
+          break;
+        }
+
+        case 'get_session_storage': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          const [{ result: storage }] = await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (key) => {
+              if (key) return { [key]: sessionStorage.getItem(key) };
+              const all = {};
+              for (let i = 0; i < sessionStorage.length; i++) {
+                const k = sessionStorage.key(i);
+                all[k] = sessionStorage.getItem(k);
+              }
+              return all;
+            },
+            args: [params.key || null]
+          });
+          
+          result = JSON.stringify(storage);
+          break;
+        }
+
+        case 'get_cache_storage': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'CacheStorage.requestCacheNames', {
+            securityOrigin: new URL((await chrome.tabs.get(tabId)).url).origin
+          });
+          
+          const entries = await chrome.debugger.sendCommand({ tabId }, 'CacheStorage.requestEntries', {
+            cacheId: params.cacheName,
+            skipCount: 0,
+            pageSize: 100
+          });
+          
+          result = JSON.stringify(entries.cacheDataEntries);
+          break;
+        }
+
+        case 'get_security_state': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Security.enable');
+          
+          if (!self._securityState) self._securityState = {};
+          
+          const listener = (src, method, evtParams) => {
+            if (src.tabId === tabId && method === 'Security.securityStateChanged') {
+              self._securityState[tabId] = evtParams;
+            }
+          };
+          chrome.debugger.onEvent.addListener(listener);
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          chrome.debugger.onEvent.removeListener(listener);
+          
+          result = JSON.stringify(self._securityState[tabId] || {});
+          break;
+        }
+
+        case 'ignore_cert_errors': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Security.setIgnoreCertificateErrors', {
+            ignore: params.ignore
+          });
+          
+          result = `Certificate errors ${params.ignore ? 'ignored' : 'restored'}`;
+          break;
+        }
+
+        case 'set_color_scheme': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          await chrome.debugger.sendCommand({ tabId }, 'Emulation.setEmulatedMedia', {
+            features: [{ name: 'prefers-color-scheme', value: params.scheme }]
+          });
+          
+          result = `Color scheme set to ${params.scheme}`;
+          break;
+        }
+
+        case 'highlight_element': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const dom = await chrome.debugger.sendCommand({ tabId }, 'DOM.getDocument', {});
+          const node = await chrome.debugger.sendCommand({ tabId }, 'DOM.querySelector', {
+            nodeId: dom.root.nodeId,
+            selector: params.selector
+          });
+          
+          await chrome.debugger.sendCommand({ tabId }, 'DOM.highlightNode', {
+            nodeId: node.nodeId,
+            highlightConfig: {
+              contentColor: { r: 255, g: 0, b: 0, a: 0.3 },
+              borderColor: { r: 255, g: 0, b: 0, a: 1 }
+            }
+          });
+          
+          result = `Element highlighted: ${params.selector}`;
+          break;
+        }
+
+        case 'hide_element': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          
+          await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (selector, hide) => {
+              const el = document.querySelector(selector);
+              if (!el) throw new Error(`Element not found: ${selector}`);
+              el.style.display = hide ? 'none' : '';
+              return hide ? 'hidden' : 'shown';
+            },
+            args: [params.selector, params.hide]
+          });
+          
+          result = `Element ${params.hide ? 'hidden' : 'shown'}: ${params.selector}`;
+          break;
+        }
+
+        case 'dom_set_attribute': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const dom = await chrome.debugger.sendCommand({ tabId }, 'DOM.getDocument', {});
+          const node = await chrome.debugger.sendCommand({ tabId }, 'DOM.querySelector', {
+            nodeId: dom.root.nodeId,
+            selector: params.selector
+          });
+          
+          await chrome.debugger.sendCommand({ tabId }, 'DOM.setAttributeValue', {
+            nodeId: node.nodeId,
+            name: params.name,
+            value: params.value
+          });
+          
+          result = `Attribute set: ${params.name}="${params.value}" on ${params.selector}`;
+          break;
+        }
+
+        case 'dom_remove_node': {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const tabId = params.tabId || tab.id;
+          await chrome.debugger.attach({ tabId }, '1.3').catch(() => {});
+          
+          const dom = await chrome.debugger.sendCommand({ tabId }, 'DOM.getDocument', {});
+          const node = await chrome.debugger.sendCommand({ tabId }, 'DOM.querySelector', {
+            nodeId: dom.root.nodeId,
+            selector: params.selector
+          });
+          
+          await chrome.debugger.sendCommand({ tabId }, 'DOM.removeNode', {
+            nodeId: node.nodeId
+          });
+          
+          result = `Node removed: ${params.selector}`;
+          break;
+        }
+
     // onclose will fire after onerror, so reconnect is handled there
   };
 }

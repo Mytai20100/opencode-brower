@@ -1,4 +1,6 @@
-# Opencode Brower — Skill agent
+# Opencode Browser — Skill Agent
+
+**Last Updated:** 2026-05-27 | **Total Tools:** 105+ (60 new tools added)
 
 ## Non-Negotiable Rules (MUST follow)
 
@@ -126,9 +128,9 @@ WRONG:  chrome_screenshot before emulation (meaningless)
 
 | Cost | Tools | Notes |
 |:---:|:---|:---|
-| **LOW** | `get_active_tab`, `list_tabs`, `get_page_info`, `get_content`, `get_workflow_context`, `navigate`, `click`, `type`, `key_press`, `get_cookies`, `get_local_storage`, `get_history`, `debug_get_logs`, `debug_get_network`, `save_session`, `restore_session` | Call freely |
-| **MEDIUM** | `debug_attach`, `debug_eval`, `find_accessible_nodes`, `ocr_page`, `find_text_on_screen`, `visual_click`, `intercept_request`, `modify_headers`, `debug_emulate_*`, `switch_iframe`, `upload_file`, `grant_permissions`, `virtual_authenticator`, `replay_request` | Use when LOW is insufficient |
-| **HIGH** | `screenshot`, `debug_get_dom_snapshot`, `get_html` (full page) | Avoid — only use when visual output is truly required |
+| **LOW** | `get_active_tab`, `list_tabs`, `get_page_info`, `get_content`, `get_workflow_context`, `navigate`, `click`, `type`, `key_press`, `get_cookies`, `get_local_storage`, `get_history`, `debug_get_logs`, `debug_get_network`, `save_session`, `restore_session`, `focus_element`, `clear_input`, `get_selected_text`, `get_session_storage` | Call freely |
+| **MEDIUM** | `debug_attach`, `debug_eval`, `find_accessible_nodes`, `ocr_page`, `find_text_on_screen`, `visual_click`, `intercept_request`, `modify_headers`, `debug_emulate_*`, `switch_iframe`, `upload_file`, `grant_permissions`, `virtual_authenticator`, `replay_request`, `double_click`, `right_click`, `middle_click`, `drag_drop`, `keyboard_shortcut`, `wait_for_navigation`, `wait_for_network_idle`, `inject_css`, `remove_css`, `select_text`, `mock_geolocation`, `mock_timezone`, `mock_locale`, `mock_battery`, `cpu_throttle`, `mock_date_time`, `modify_response_body`, `set_extra_headers`, `get_request_body`, `profiling_start`, `profiling_stop`, `trace_start`, `trace_stop`, `pause_on_exception`, `debugger_resume`, `debugger_step_over`, `live_edit_script`, `get_indexeddb`, `get_cache_storage`, `set_color_scheme`, `highlight_element`, `hide_element`, `dom_set_attribute`, `dom_remove_node` | Use when LOW is insufficient |
+| **HIGH** | `screenshot`, `screenshot_element`, `screenshot_fullpage`, `pdf_print`, `debug_get_dom_snapshot`, `get_html` (full page), `heap_snapshot`, `get_accessibility_tree` | Avoid — only use when visual output or deep inspection is truly required |
 
 ---
 
@@ -209,3 +211,148 @@ chrome_get_workflow_context    → required before chrome_click/type (needs sele
 - **When extension disconnects:** Report immediately and stop calling tools — each pending call will timeout after 30s.
 - **When the task is ambiguous:** Call `chrome_get_workflow_context` first to understand the current page state before planning.
 - **`debug_attach` can only be called once per tab.** Calling it again will throw — the extension silently ignores it via `.catch(() => {})`.
+
+---
+
+## 🆕 New Tools Added (2026-05-27)
+
+### Phase 1: Advanced Mouse & Keyboard (21 tools)
+- **Mouse Actions:** `chrome_double_click`, `chrome_right_click`, `chrome_middle_click`, `chrome_drag_drop`
+- **Keyboard:** `chrome_keyboard_shortcut` (Ctrl+C, Ctrl+V, Ctrl+A, Ctrl+Z, Ctrl+S, etc.)
+- **Wait Tools:** `chrome_wait_for_navigation`, `chrome_wait_for_network_idle`
+- **Screenshots:** `chrome_screenshot_element`, `chrome_screenshot_fullpage`, `chrome_pdf_print`
+- **CSS Injection:** `chrome_inject_css`, `chrome_remove_css`
+- **Text Selection:** `chrome_select_text`, `chrome_get_selected_text`, `chrome_focus_element`, `chrome_clear_input`
+
+### Phase 2: Testing & Mocking (12 tools)
+- **Emulation:** `chrome_mock_geolocation`, `chrome_mock_timezone`, `chrome_mock_locale`, `chrome_mock_battery`, `chrome_mock_media_type`, `chrome_emulate_vision`, `chrome_cpu_throttle`
+- **Network & Time:** `chrome_mock_date_time`, `chrome_modify_response_body`, `chrome_get_ws_frames`, `chrome_set_extra_headers`, `chrome_get_request_body`
+
+### Phase 3: Advanced Debugging (17 tools)
+- **Profiling:** `chrome_profiling_start`, `chrome_profiling_stop`, `chrome_heap_snapshot`, `chrome_trace_start`, `chrome_trace_stop`
+- **Debugger Control:** `chrome_pause_on_exception`, `chrome_debugger_resume`, `chrome_debugger_step_over`, `chrome_debugger_step_into`, `chrome_debugger_step_out`, `chrome_get_call_frames`
+- **Runtime Inspection:** `chrome_evaluate_on_call_frame`, `chrome_get_script_source`, `chrome_live_edit_script`, `chrome_call_function_on`, `chrome_get_properties`, `chrome_compile_script`
+
+### Phase 4: Storage & API (10 tools)
+- **Storage:** `chrome_get_indexeddb`, `chrome_get_session_storage`, `chrome_get_cache_storage`
+- **Security:** `chrome_get_security_state`, `chrome_ignore_cert_errors`
+- **DOM Manipulation:** `chrome_set_color_scheme`, `chrome_highlight_element`, `chrome_hide_element`, `chrome_dom_set_attribute`, `chrome_dom_remove_node`
+
+---
+
+## 🎯 New Tool Usage Examples
+
+### Advanced Mouse Interactions
+```
+# Double click on element
+chrome_double_click(selector="#submit-btn")
+
+# Right click to open context menu
+chrome_right_click(selector=".file-item")
+
+# Drag and drop
+chrome_drag_drop(fromSelector="#item1", toSelector="#dropzone")
+
+# Keyboard shortcuts
+chrome_keyboard_shortcut(shortcut="Ctrl+S")  # Save page
+chrome_keyboard_shortcut(shortcut="Ctrl+A")  # Select all
+```
+
+### Wait for Page Events
+```
+# Wait for navigation after clicking link
+chrome_click(selector="a.next-page")
+chrome_wait_for_navigation(timeout=30000)
+
+# Wait for network to be idle
+chrome_wait_for_network_idle(idleTime=500, timeout=30000)
+```
+
+### Advanced Screenshots
+```
+# Screenshot specific element
+chrome_screenshot_element(selector="#chart", format="png")
+
+# Full page screenshot (with scrolling)
+chrome_screenshot_fullpage(format="jpeg", quality=90)
+
+# Save as PDF
+chrome_pdf_print(landscape=true, printBackground=true)
+```
+
+### Testing & Mocking
+```
+# Mock GPS location
+chrome_mock_geolocation(latitude=37.7749, longitude=-122.4194)
+
+# Override timezone
+chrome_mock_timezone(timezoneId="America/New_York")
+
+# Throttle CPU for performance testing
+chrome_cpu_throttle(rate=4)  # 4x slowdown
+
+# Mock Date.now() for deterministic tests
+chrome_mock_date_time(timestamp=1609459200000, freeze=true)
+
+# Modify API response
+chrome_modify_response_body(urlPattern="*/api/user*", newBody='{"name":"Test"}')
+```
+
+### Advanced Debugging
+```
+# CPU profiling
+chrome_profiling_start()
+# ... perform actions ...
+chrome_profiling_stop()  # Returns profile data
+
+# Heap snapshot for memory analysis
+chrome_heap_snapshot()
+
+# Live edit JavaScript
+chrome_live_edit_script(scriptId="123", scriptSource="console.log('patched')")
+
+# Pause on exceptions
+chrome_pause_on_exception(state="all")
+```
+
+### Storage & DOM
+```
+# Read IndexedDB
+chrome_get_indexeddb(databaseName="mydb", objectStoreName="users")
+
+# Force dark mode
+chrome_set_color_scheme(scheme="dark")
+
+# Highlight element for debugging
+chrome_highlight_element(selector="#target", color="red")
+
+# Hide element
+chrome_hide_element(selector=".ad-banner", hide=true)
+```
+
+---
+
+## 📋 Tool Prerequisites (Updated)
+
+```
+chrome_debug_attach                    → required before ALL chrome_debug_* tools
+chrome_profiling_start                 → required before chrome_profiling_stop
+chrome_trace_start                     → required before chrome_trace_stop
+chrome_inject_css                      → returns cssId for chrome_remove_css
+chrome_intercept_request               → required before chrome_modify_response_body
+chrome_wait_for_navigation             → use after navigation actions (click link, etc.)
+chrome_wait_for_network_idle           → requires chrome_debug_attach
+```
+
+---
+
+## ⚠️ Important Notes for New Tools
+
+1. **Screenshot tools are HIGH cost** - Use `screenshot_element` instead of full page when possible
+2. **Heap snapshots can be large** - May take time and memory, use sparingly
+3. **Live script editing** - May fail on minified code, works best with source maps
+4. **Mock tools persist** - Remember to reset mocks after testing
+5. **Debugger stepping** - Requires debugger to be paused first (use `pause_on_exception`)
+6. **IndexedDB access** - Requires proper origin permissions
+7. **Network idle detection** - Requires `debug_attach` to monitor network events
+
