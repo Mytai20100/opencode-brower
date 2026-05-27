@@ -1,4 +1,4 @@
-# V0.0.2a
+# V0.0.2
 
 ### Initial Release
   - Advanced mouse: double_click, right_click, middle_click, drag_drop
