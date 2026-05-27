@@ -7,12 +7,34 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { WebSocketServer, WebSocket } from "ws";
 
+const WS_PORT = parseInt(process.env.OPENCODE_BROWSER_PORT || "3002", 10);
+
 const wss = new WebSocketServer({
-  port: 3002,
+  port: WS_PORT,
   host: "0.0.0.0",
   verifyClient: () => true,
 });
-console.error("WebSocket server started on port 3002");
+
+// CRITICAL: Without this handler, EADDRINUSE crashes the process before
+// stdio transport starts, causing opencode to report "cannot get tools".
+wss.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(
+      `[opencode-browser] Port ${WS_PORT} already in use. ` +
+      `Another instance may be running. ` +
+      `Set OPENCODE_BROWSER_PORT env var to use a different port, ` +
+      `then update the extension endpoint to match (ws://localhost:<port>).`
+    );
+    // Do NOT exit — MCP stdio transport still works; tools will return
+    // "No extension connected" until the port frees up or is changed.
+  } else {
+    console.error("[opencode-browser] WebSocket server error:", err.message);
+  }
+});
+
+wss.on("listening", () => {
+  console.error(`[opencode-browser] WebSocket server started on port ${WS_PORT}`);
+});
 
 // Keep connections alive with server-side ping every 25s
 const SERVER_PING_INTERVAL = 25000;
@@ -45,7 +67,7 @@ const heartbeat = setInterval(() => {
 
 const server = new Server(
   {
-    name: "opencode-brower",
+    name: "opencode-browser",
     version: "opencode beta-2a",
   },
   {
@@ -82,7 +104,7 @@ async function callExtension(method: string, params: any) {
     });
 
     if (!sent) {
-      reject(new Error("No extension connected"));
+      reject(new Error(`No Chrome extension connected. Ensure opencode-browser extension is installed and connected to ws://localhost:${WS_PORT} (check the extension popup).`));
       return;
     }
 
