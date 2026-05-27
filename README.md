@@ -362,6 +362,71 @@ These tools require calling `chrome_debug_attach` first.
 | `chrome_get_workflow_context` | Snapshot of forms, buttons, inputs, and event log |
 | `chrome_get_tool_graph` | Get optimal tool execution plan for a given intent |
 
+### CSS & Styling
+
+| Tool | Description |
+|------|-------------|
+| `chrome_inject_css` | Inject CSS stylesheet into the page |
+| `chrome_remove_css` | Remove previously injected CSS by ID |
+| `chrome_set_color_scheme` | Force dark or light mode |
+
+### Testing & Mocking
+
+| Tool | Description |
+|------|-------------|
+| `chrome_mock_geolocation` | Mock GPS location for testing |
+| `chrome_mock_timezone` | Override timezone of the page |
+| `chrome_mock_locale` | Override locale/language |
+| `chrome_mock_battery` | Mock battery status API |
+| `chrome_mock_media_type` | Override CSS media type (print/screen) |
+| `chrome_emulate_vision` | Emulate vision deficiencies (color blindness, blurred vision) |
+| `chrome_cpu_throttle` | Throttle CPU to simulate slower devices |
+| `chrome_mock_date_time` | Override Date.now() for deterministic testing |
+| `chrome_modify_response_body` | Modify response body before page receives it |
+| `chrome_get_ws_frames` | Capture WebSocket frames |
+| `chrome_set_extra_headers` | Add extra HTTP headers to all requests |
+| `chrome_get_request_body` | Get POST body of a sent request |
+
+### Advanced Debugging & Profiling
+
+| Tool | Description |
+|------|-------------|
+| `chrome_profiling_start` | Start CPU profiling |
+| `chrome_profiling_stop` | Stop CPU profiling and get profile data |
+| `chrome_heap_snapshot` | Take a heap snapshot for memory analysis |
+| `chrome_trace_start` | Start tracing (Timeline/Performance recording) |
+| `chrome_trace_stop` | Stop tracing and get trace events |
+| `chrome_pause_on_exception` | Pause debugger on exceptions (all/uncaught/none) |
+| `chrome_debugger_resume` | Resume execution after debugger pause |
+| `chrome_debugger_step_over` | Step over current line |
+| `chrome_debugger_step_into` | Step into function call |
+| `chrome_debugger_step_out` | Step out of current function |
+| `chrome_get_call_frames` | Get call stack when paused |
+| `chrome_evaluate_on_call_frame` | Evaluate expression in paused call frame |
+| `chrome_get_script_source` | Get source code of a script |
+| `chrome_live_edit_script` | Live edit JavaScript without reload |
+| `chrome_call_function_on` | Call function on remote object |
+| `chrome_get_properties` | Get properties of a remote object |
+| `chrome_compile_script` | Check JavaScript syntax without executing |
+
+### Storage & Security
+
+| Tool | Description |
+|------|-------------|
+| `chrome_get_indexeddb` | Read IndexedDB data from the page |
+| `chrome_get_cache_storage` | Read Service Worker cache storage |
+| `chrome_get_security_state` | Get HTTPS security state and certificate info |
+| `chrome_ignore_cert_errors` | Ignore SSL certificate errors |
+
+### DOM Manipulation
+
+| Tool | Description |
+|------|-------------|
+| `chrome_highlight_element` | Highlight element on screen for debugging |
+| `chrome_hide_element` | Hide or show element |
+| `chrome_dom_set_attribute` | Set DOM attribute via CDP |
+| `chrome_dom_remove_node` | Remove DOM node |
+
 ## Tool graph
 
 Before starting any multi-step task, call `chrome_get_tool_graph` with a plain-text description of what you want to accomplish. It returns a ranked list of recommended tools, their cost (`low` / `medium` / `high`), prerequisites, suggested next steps, and tools to avoid. This is especially useful for agents that might otherwise make redundant or expensive calls.
@@ -483,68 +548,3 @@ See [CHANGELOG-MCP.md](CHANGELOG-MCP.md) for a detailed list of changes.
 ## License
 
 [MIT License](./LICENSE)
-### CSS & Styling
-
-| Tool | Description |
-|------|-------------|
-| `chrome_inject_css` | Inject CSS stylesheet into the page |
-| `chrome_remove_css` | Remove previously injected CSS by ID |
-| `chrome_set_color_scheme` | Force dark or light mode |
-
-### Testing & Mocking
-
-| Tool | Description |
-|------|-------------|
-| `chrome_mock_geolocation` | Mock GPS location for testing |
-| `chrome_mock_timezone` | Override timezone of the page |
-| `chrome_mock_locale` | Override locale/language |
-| `chrome_mock_battery` | Mock battery status API |
-| `chrome_mock_media_type` | Override CSS media type (print/screen) |
-| `chrome_emulate_vision` | Emulate vision deficiencies (color blindness, blurred vision) |
-| `chrome_cpu_throttle` | Throttle CPU to simulate slower devices |
-| `chrome_mock_date_time` | Override Date.now() for deterministic testing |
-| `chrome_modify_response_body` | Modify response body before page receives it |
-| `chrome_get_ws_frames` | Capture WebSocket frames |
-| `chrome_set_extra_headers` | Add extra HTTP headers to all requests |
-| `chrome_get_request_body` | Get POST body of a sent request |
-
-### Advanced Debugging & Profiling
-
-| Tool | Description |
-|------|-------------|
-| `chrome_profiling_start` | Start CPU profiling |
-| `chrome_profiling_stop` | Stop CPU profiling and get profile data |
-| `chrome_heap_snapshot` | Take a heap snapshot for memory analysis |
-| `chrome_trace_start` | Start tracing (Timeline/Performance recording) |
-| `chrome_trace_stop` | Stop tracing and get trace events |
-| `chrome_pause_on_exception` | Pause debugger on exceptions (all/uncaught/none) |
-| `chrome_debugger_resume` | Resume execution after debugger pause |
-| `chrome_debugger_step_over` | Step over current line |
-| `chrome_debugger_step_into` | Step into function call |
-| `chrome_debugger_step_out` | Step out of current function |
-| `chrome_get_call_frames` | Get call stack when paused |
-| `chrome_evaluate_on_call_frame` | Evaluate expression in paused call frame |
-| `chrome_get_script_source` | Get source code of a script |
-| `chrome_live_edit_script` | Live edit JavaScript without reload |
-| `chrome_call_function_on` | Call function on remote object |
-| `chrome_get_properties` | Get properties of a remote object |
-| `chrome_compile_script` | Check JavaScript syntax without executing |
-
-### Storage & Security
-
-| Tool | Description |
-|------|-------------|
-| `chrome_get_indexeddb` | Read IndexedDB data from the page |
-| `chrome_get_cache_storage` | Read Service Worker cache storage |
-| `chrome_get_security_state` | Get HTTPS security state and certificate info |
-| `chrome_ignore_cert_errors` | Ignore SSL certificate errors |
-
-### DOM Manipulation
-
-| Tool | Description |
-|------|-------------|
-| `chrome_highlight_element` | Highlight element on screen for debugging |
-| `chrome_hide_element` | Hide or show element |
-| `chrome_dom_set_attribute` | Set DOM attribute via CDP |
-| `chrome_dom_remove_node` | Remove DOM node |
-
