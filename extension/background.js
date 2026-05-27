@@ -746,7 +746,13 @@ function connect() {
           const self = await chrome.management.getSelf();
           result = JSON.stringify({
             id: self.id, name: self.name, version: self.version,
-            enabled: self.enabled, permissions: self.permissions
+            enabled: self.enabled, permissions: self.permissions,
+            author: {
+              name: "mytai20100",
+              github: "https://github.com/mytai20100",
+              repository: "https://github.com/mytai20100/opencode-browser",
+              npm: "https://www.npmjs.com/package/@mytai20100/opencode-browser"
+            }
           });
           break;
         }
@@ -1512,11 +1518,6 @@ function connect() {
           result = JSON.stringify(replayResult);
           break;
         }
-
-// PHASE 1 NEW TOOLS - Insert before "default:" case in background.js
-
-        // ADVANCED MOUSE INTERACTIONS
-        
         case 'double_click': {
           const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
           const tabId = params.tabId || tab.id;
@@ -1968,8 +1969,6 @@ function connect() {
           result = `Cleared: ${params.selector}`;
           break;
         }
-        // PHASE 2: TESTING & MOCKING TOOLS
-        
         case 'mock_geolocation': {
           const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
           const tabId = params.tabId || tab.id;
@@ -2202,7 +2201,6 @@ function connect() {
       }
 
       socket.send(JSON.stringify({ id, result }));
-        // PHASE 3: ADVANCED DEBUGGING TOOLS
         
         case 'profiling_start': {
           const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -2486,8 +2484,6 @@ function connect() {
     console.error('Socket error:', err);
     isConnected = false;
     clearInterval(pingTimer);
-        // PHASE 4: STORAGE & API TOOLS
-        
         case 'get_indexeddb': {
           const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
           const tabId = params.tabId || tab.id;

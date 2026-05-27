@@ -684,7 +684,7 @@ const TOOLS = [
   // EXTENSION META
   {
     name: "chrome_get_extension_info",
-    description: "Get info about the Opencode Brower extension itself",
+    description: "Get info about the Opencode Brower extension itself, including author metadata",
     inputSchema: { type: "object", properties: {} },
   },
 
@@ -1183,7 +1183,6 @@ const TOOLS = [
     },
   },
 
-  // PHASE 1: ADVANCED MOUSE & KEYBOARD
   {
     name: "chrome_double_click",
     description: "Double click an element by CSS selector or at specific coordinates",
@@ -1401,7 +1400,6 @@ const TOOLS = [
     },
   },
   ,
-  // PHASE 1: ADVANCED MOUSE & KEYBOARD
   {
     name: "chrome_double_click",
     description: "Double click an element by CSS selector or at specific coordinates",
@@ -1611,7 +1609,6 @@ const TOOLS = [
     },
   }
   ,
-  // PHASE 2: TESTING & MOCKING TOOLS
   {
     name: "chrome_mock_geolocation",
     description: "Mock GPS location for testing",
@@ -1767,7 +1764,6 @@ const TOOLS = [
     },
   }
   ,
-  // PHASE 3: ADVANCED DEBUGGING TOOLS
   {
     name: "chrome_profiling_start",
     description: "Start CPU profiling",
@@ -1960,7 +1956,6 @@ const TOOLS = [
     },
   }
   ,
-  // PHASE 4: STORAGE & API TOOLS
   {
     name: "chrome_get_indexeddb",
     description: "Read IndexedDB data from the page",
